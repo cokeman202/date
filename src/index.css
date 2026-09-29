@@ -1,0 +1,289 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Custom Leaflet Map Pin Styles */
+.custom-couple-pin {
+  background: none;
+  border: none;
+}
+
+.pin-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e11d48;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.45), 0 0 0 3px white;
+  font-size: 16px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.pin-bubble:hover {
+  transform: scale(1.22);
+  box-shadow: 0 8px 24px rgba(225, 29, 72, 0.7), 0 0 0 4px #ffe4e6;
+  z-index: 1000 !important;
+}
+
+.pin-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid #e11d48;
+}
+
+.pin-city-badge {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ============================================================ */
+/* CITY BOUNDARY GLOWING STYLES (Requested by User)            */
+/* ============================================================ */
+
+/* Inactive/Visited City Boundary */
+.visited-city-boundary {
+  stroke: #f43f5e;
+  stroke-width: 2.5px;
+  stroke-dasharray: 6 4;
+  fill: #f43f5e;
+  fill-opacity: 0.14;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.visited-city-boundary:hover {
+  stroke: #ff1e56;
+  stroke-width: 3.5px;
+  fill-opacity: 0.26;
+  filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.8));
+}
+
+/* Active Glowing City Boundary */
+.active-glowing-city-boundary {
+  stroke: #ff1e56 !important;
+  stroke-width: 4.5px !important;
+  stroke-dasharray: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  fill: #ff2d55 !important;
+  fill-opacity: 0.36 !important;
+  filter: drop-shadow(0 0 10px #ff2d55) drop-shadow(0 0 25px rgba(255, 45, 85, 0.85)) drop-shadow(0 0 45px rgba(244, 63, 94, 0.6)) !important;
+  animation: boundaryGlowPulse 2.2s infinite ease-in-out !important;
+  cursor: pointer;
+}
+
+@keyframes boundaryGlowPulse {
+  0% {
+    filter: drop-shadow(0 0 8px #ff2d55) drop-shadow(0 0 20px rgba(255, 45, 85, 0.75));
+    fill-opacity: 0.30;
+  }
+  50% {
+    filter: drop-shadow(0 0 16px #ff1e56) drop-shadow(0 0 35px rgba(255, 30, 86, 0.95)) drop-shadow(0 0 55px rgba(244, 63, 94, 0.8));
+    fill-opacity: 0.44;
+  }
+  100% {
+    filter: drop-shadow(0 0 8px #ff2d55) drop-shadow(0 0 20px rgba(255, 45, 85, 0.75));
+    fill-opacity: 0.30;
+  }
+}
+
+/* ============================================================ */
+/* RESTAURANT SPECIFIC DOT MARKERS ON THE MAP                  */
+/* ============================================================ */
+
+.restaurant-dot-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.restaurant-map-dot-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.restaurant-map-dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.restaurant-map-dot .dot-core {
+  width: 12px;
+  height: 12px;
+  background: #f43f5e;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.9), 0 2px 5px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.restaurant-map-dot-wrapper:hover .dot-core,
+.restaurant-map-dot.highlighted-city-dot .dot-core {
+  width: 16px;
+  height: 16px;
+  background: #ff1e56;
+  border-width: 2.5px;
+  box-shadow: 0 0 18px #ff1e56, 0 0 0 3px rgba(255, 30, 86, 0.4);
+}
+
+.restaurant-map-dot .dot-ping {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(244, 63, 94, 0.45);
+  animation: dotPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  z-index: 1;
+}
+
+@keyframes dotPing {
+  0% { transform: scale(0.7); opacity: 0.9; }
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+.restaurant-dot-label {
+  margin-top: 3px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.restaurant-map-dot-wrapper:hover .restaurant-dot-label {
+  transform: translateY(-2px) scale(1.05);
+  background: #ff1e56;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 30, 86, 0.5);
+}
+
+/* Custom Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Passport Stamp Effect */
+.passport-stamp {
+  position: relative;
+  border: 3px dashed #b91c1c;
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #991b1b;
+  text-transform: uppercase;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  transform: rotate(-2deg);
+  background: rgba(254, 242, 242, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.2);
+  transition: all 0.3s ease;
+}
+
+.passport-stamp:hover {
+  transform: rotate(0deg) scale(1.02);
+  background: rgba(254, 242, 242, 0.9);
+}
+
+.dark .passport-stamp {
+  border-color: #f87171;
+  color: #fca5a5;
+  background: rgba(127, 29, 29, 0.2);
+}
+
+/* Polaroid Card Effect */
+.polaroid-card {
+  background: white;
+  padding: 10px 10px 18px 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.polaroid-card:hover {
+  transform: translateY(-4px) rotate(0.5deg);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15);
+}
+
+.dark .polaroid-card {
+  background: #1c1917;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

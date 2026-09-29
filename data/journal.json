@@ -1,0 +1,54 @@
+{
+  "restaurants": [
+    {
+      "name": "Mandarin (Upper James)",
+      "city": "Hamilton",
+      "country": "Canada",
+      "cuisineId": "chinese",
+      "cuisineName": "Chinese & Dim Sum",
+      "cuisineFlag": "🇨🇳",
+      "dateVisited": "2026-09-29",
+      "rating": 5,
+      "priceLevel": "$$",
+      "whoPicked": "Both of Us",
+      "herFavoriteDish": "",
+      "hisFavoriteDish": "",
+      "sharedDish": "",
+      "storyNotes": "",
+      "tags": [
+        "Romantic Date"
+      ],
+      "photoUrl": "",
+      "wouldReturn": true,
+      "lat": 43.2059055,
+      "lng": -79.8932942,
+      "id": "rest-1790664938836"
+    },
+    {
+      "name": "Mandarin (Queenston)",
+      "city": "Hamilton",
+      "country": "Canada",
+      "cuisineId": "chinese",
+      "cuisineName": "Chinese & Dim Sum",
+      "cuisineFlag": "🇨🇳",
+      "dateVisited": "2026-09-29",
+      "rating": 5,
+      "priceLevel": "$$",
+      "whoPicked": "Both of Us",
+      "herFavoriteDish": "",
+      "hisFavoriteDish": "",
+      "sharedDish": "",
+      "storyNotes": "",
+      "tags": [
+        "Romantic Date"
+      ],
+      "photoUrl": "",
+      "wouldReturn": true,
+      "lat": 43.2512066,
+      "lng": -79.8099641,
+      "id": "rest-1790664354721"
+    }
+  ],
+  "wishlist": [],
+  "updatedAt": "2026-09-29T07:01:00.000Z"
+}
