@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   MapPin, 
   Calendar, 
@@ -8,6 +7,7 @@ import {
   Trash2, 
   BookmarkCheck
 } from 'lucide-react';
+import { CUISINE_DEFAULT_PHOTOS } from '../services/imageService';
 
 export default function RestaurantCard({ 
   restaurant, 
@@ -47,9 +47,9 @@ export default function RestaurantCard({
       
       {/* Top Media Banner */}
       <div className="relative h-52 sm:h-56 w-full overflow-hidden bg-stone-100 dark:bg-stone-800">
-        {photoUrl ? (
+        {photoUrl || CUISINE_DEFAULT_PHOTOS[restaurant.cuisineId] ? (
           <img 
-            src={photoUrl} 
+            src={photoUrl || CUISINE_DEFAULT_PHOTOS[restaurant.cuisineId]} 
             alt={name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"

@@ -13,11 +13,13 @@ import {
   MessageSquare,
   Search,
   Loader2,
-  Utensils
+  Utensils,
+  ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CUISINES_LIST } from '../data/cuisinesList';
 import { uploadImage, searchPlacesApi, searchCitiesApi } from '../services/api';
+import { autoFindRestaurantPhoto, getGoogleImagesUrl, getYelpSearchUrl } from '../services/imageService';
 
 const COMMON_TAGS = [
   "Romantic Date",
@@ -88,6 +90,8 @@ export default function RestaurantModal({
 
   const [customTagInput, setCustomTagInput] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isFindingPhoto, setIsFindingPhoto] = useState(false);
+  const [photoFeedback, setPhotoFeedback] = useState('');
 
   // Autocomplete state
   const [restaurantSuggestions, setRestaurantSuggestions] = useState([]);
@@ -165,6 +169,33 @@ export default function RestaurantModal({
     }
   };
 
+  // Auto-find photo for restaurant using Wikipedia, Wikimedia & curated food photography
+  const handleAutoFindPhoto = async () => {
+    try {
+      setIsFindingPhoto(true);
+      setPhotoFeedback('Searching for photo...');
+      const res = await autoFindRestaurantPhoto({
+        name: formData.name,
+        city: formData.city,
+        cuisineId: formData.cuisineId,
+        dish: formData.herFavoriteDish || formData.hisFavoriteDish || formData.sharedDish
+      });
+      if (res && res.url) {
+        setFormData(prev => ({ ...prev, photoUrl: res.url }));
+        setPhotoFeedback(`Found photo: ${res.label}`);
+        setTimeout(() => setPhotoFeedback(''), 4000);
+      } else {
+        setPhotoFeedback('No photo found. Check Google Images or Yelp below!');
+        setTimeout(() => setPhotoFeedback(''), 4000);
+      }
+    } catch {
+      setPhotoFeedback('Search error');
+      setTimeout(() => setPhotoFeedback(''), 3000);
+    } finally {
+      setIsFindingPhoto(false);
+    }
+  };
+
   // Select place from autocomplete
   const handleSelectPlace = (place) => {
     const inferredCuisineId = guessCuisineFromName(place.name);
@@ -173,10 +204,13 @@ export default function RestaurantModal({
       matchedCuisine = CUISINES_LIST.find(c => c.id === inferredCuisineId);
     }
 
+    const newCity = place.city || formData.city;
+    const newCuisineId = matchedCuisine?.id || formData.cuisineId;
+
     setFormData(prev => ({
       ...prev,
       name: place.name || prev.name,
-      city: place.city || prev.city,
+      city: newCity,
       country: place.country || prev.country,
       lat: place.lat || prev.lat,
       lng: place.lng || prev.lng,
@@ -189,6 +223,20 @@ export default function RestaurantModal({
 
     setShowPlaceDropdown(false);
     setRestaurantSuggestions([]);
+
+    // Auto-pull photo in background if no photo exists yet
+    if (!formData.photoUrl) {
+      setIsFindingPhoto(true);
+      autoFindRestaurantPhoto({
+        name: place.name,
+        city: newCity,
+        cuisineId: newCuisineId
+      }).then(res => {
+        if (res && res.url) {
+          setFormData(prev => ({ ...prev, photoUrl: prev.photoUrl || res.url }));
+        }
+      }).catch(() => {}).finally(() => setIsFindingPhoto(false));
+    }
   };
 
   // Handle typing in City input with autocomplete
@@ -626,17 +674,36 @@ export default function RestaurantModal({
             />
           </div>
 
-          {/* Photo Upload or URL */}
+          {/* Photo Section with Auto-Find, Google & Yelp shortcuts */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 mb-1.5 flex items-center gap-1.5">
-              <Camera className="w-3.5 h-3.5 text-stone-400" />
-              Photo of Food or Date Selfie
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 flex items-center gap-1.5">
+                <Camera className="w-3.5 h-3.5 text-stone-400" />
+                Restaurant / Food Photo
+              </label>
+
+              <button
+                type="button"
+                onClick={handleAutoFindPhoto}
+                disabled={isFindingPhoto || (!formData.name && !formData.cuisineId)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-bold shadow-sm transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer"
+                title="Automatically search and pull an image from Wikipedia / culinary photography"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${isFindingPhoto ? 'animate-spin' : ''}`} />
+                <span>{isFindingPhoto ? 'Pulling photo...' : '✨ Auto-Pull Photo'}</span>
+              </button>
+            </div>
+
+            {photoFeedback && (
+              <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mb-2 animate-in fade-in">
+                {photoFeedback}
+              </p>
+            )}
             
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              <label className="w-full sm:w-auto cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700/60 transition-colors text-xs font-semibold text-stone-700 dark:text-stone-300">
+              <label className="w-full sm:w-auto cursor-pointer flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700/60 transition-colors text-xs font-semibold text-stone-700 dark:text-stone-300">
                 <Upload className="w-4 h-4 text-rose-500" />
-                <span>{uploading ? 'Uploading...' : 'Upload From Phone / Computer'}</span>
+                <span>{uploading ? 'Uploading...' : 'Upload File'}</span>
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -646,26 +713,54 @@ export default function RestaurantModal({
                 />
               </label>
               
-              <span className="text-xs text-stone-400">or paste image link:</span>
+              <span className="text-xs text-stone-400 hidden sm:inline">or paste image link:</span>
 
               <input
                 type="url"
-                placeholder="https://..."
+                placeholder="Paste image link from Google / Yelp / Instagram..."
                 value={formData.photoUrl}
                 onChange={e => setFormData({ ...formData, photoUrl: e.target.value })}
                 className="w-full sm:flex-1 px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
 
+            {/* Quick links to Google Images & Yelp */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-1 border-t border-stone-100 dark:border-stone-800 text-[11px]">
+              <span className="text-stone-400">
+                Need a specific picture? Browse directly:
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={getGoogleImagesUrl(formData.name || 'restaurant', formData.city)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 font-semibold transition-colors"
+                >
+                  <span>Google Images</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href={getYelpSearchUrl(formData.name, formData.city)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 font-semibold transition-colors"
+                >
+                  <span>Yelp</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
             {formData.photoUrl && (
-              <div className="mt-3 relative w-32 h-20 rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700">
+              <div className="mt-3 relative w-48 h-28 rounded-2xl overflow-hidden border-2 border-rose-300 dark:border-rose-800 shadow-md">
                 <img src={formData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, photoUrl: '' })}
-                  className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full hover:bg-black"
+                  className="absolute top-1.5 right-1.5 p-1 bg-black/70 hover:bg-black text-white rounded-full transition-colors"
+                  title="Remove photo"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}

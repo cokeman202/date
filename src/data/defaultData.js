@@ -18,7 +18,7 @@ export const DEFAULT_RESTAURANTS = [
       "Dinner Date",
       "Buffet"
     ],
-    "photoUrl": "",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Buffet_Photo.JPG",
     "wouldReturn": true,
     "lat": 43.2059055,
     "lng": -79.8932942,
@@ -42,7 +42,7 @@ export const DEFAULT_RESTAURANTS = [
     "tags": [
       "Dinner Date"
     ],
-    "photoUrl": "",
+    "photoUrl": "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=800&auto=format&fit=crop",
     "wouldReturn": true,
     "lat": 43.2512066,
     "lng": -79.8099641,
