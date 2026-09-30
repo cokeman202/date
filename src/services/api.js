@@ -177,6 +177,19 @@ export async function getRestaurants() {
   return getLocalRestaurants();
 }
 
+// If token query parameter exists, save to localStorage and clean URL immediately
+if (typeof window !== 'undefined') {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const tokenParam = params.get('token');
+    if (tokenParam && tokenParam.startsWith('ghp_')) {
+      localStorage.setItem(STORAGE_KEY_GITHUB_TOKEN, tokenParam.trim());
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  } catch {}
+}
+
 export async function addRestaurant(entry) {
   if (!entry.lat || !entry.lng) {
     const clean = (entry.city || '').trim().toLowerCase();
@@ -201,13 +214,20 @@ export async function addRestaurant(entry) {
       body: JSON.stringify(entry)
     });
     const current = getLocalRestaurants();
-    setLocalRestaurants([data, ...current]);
+    const updated = [data, ...current];
+    setLocalRestaurants(updated);
+    if (getGitHubToken()) {
+      pushToGitHubGist(updated, getLocalWishlist()).catch(e => console.warn('Auto-sync error:', e));
+    }
     return data;
   } catch {
     const newItem = { ...entry, id: 'rest-' + Date.now() };
     const current = getLocalRestaurants();
     const updated = [newItem, ...current];
     setLocalRestaurants(updated);
+    if (getGitHubToken()) {
+      pushToGitHubGist(updated, getLocalWishlist()).catch(e => console.warn('Auto-sync error:', e));
+    }
     return newItem;
   }
 }
@@ -221,10 +241,16 @@ export async function updateRestaurant(id, entry) {
     });
     const current = getLocalRestaurants().map(r => r.id === id ? data : r);
     setLocalRestaurants(current);
+    if (getGitHubToken()) {
+      pushToGitHubGist(current, getLocalWishlist()).catch(e => console.warn('Auto-sync error:', e));
+    }
     return data;
   } catch {
     const current = getLocalRestaurants().map(r => r.id === id ? { ...r, ...entry } : r);
     setLocalRestaurants(current);
+    if (getGitHubToken()) {
+      pushToGitHubGist(current, getLocalWishlist()).catch(e => console.warn('Auto-sync error:', e));
+    }
     return { ...entry, id };
   }
 }
@@ -237,6 +263,9 @@ export async function deleteRestaurant(id) {
   }
   const current = getLocalRestaurants().filter(r => r.id !== id);
   setLocalRestaurants(current);
+  if (getGitHubToken()) {
+    pushToGitHubGist(current, getLocalWishlist()).catch(e => console.warn('Auto-sync error:', e));
+  }
   return id;
 }
 
@@ -353,12 +382,20 @@ export async function addWishlistItem(item) {
       body: JSON.stringify(item)
     });
     const current = getLocalWishlist();
-    setLocalWishlist([data, ...current]);
+    const updated = [data, ...current];
+    setLocalWishlist(updated);
+    if (getGitHubToken()) {
+      pushToGitHubGist(getLocalRestaurants(), updated).catch(() => {});
+    }
     return data;
   } catch {
     const newItem = { ...item, id: 'wish-' + Date.now() };
     const current = getLocalWishlist();
-    setLocalWishlist([newItem, ...current]);
+    const updated = [newItem, ...current];
+    setLocalWishlist(updated);
+    if (getGitHubToken()) {
+      pushToGitHubGist(getLocalRestaurants(), updated).catch(() => {});
+    }
     return newItem;
   }
 }
@@ -369,6 +406,9 @@ export async function deleteWishlistItem(id) {
   } catch {}
   const current = getLocalWishlist().filter(w => w.id !== id);
   setLocalWishlist(current);
+  if (getGitHubToken()) {
+    pushToGitHubGist(getLocalRestaurants(), current).catch(() => {});
+  }
   return id;
 }
 
