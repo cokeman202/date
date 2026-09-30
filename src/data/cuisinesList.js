@@ -303,11 +303,41 @@ export const CUISINES_LIST = [
     icon: "🐟",
     description: "Fresh sesame ahi poke bowls, kalua pork roasted in banana leaves, and spam musubi.",
     mustTry: "Ahi Tuna Poke, Kalua Pig, Loco Moco, Haupia"
+  },
+
+  // Dining Styles & Everyday Spots
+  {
+    id: "sit-down-restaurant",
+    name: "Sit Down Restaurant",
+    region: "Dining Styles & Cafes",
+    flag: "🍽️",
+    icon: "🍷",
+    description: "Classic sit-down dining, hospitality, multi-course meals, and table service.",
+    mustTry: "Chef's Specials, Seasonal Tasting Menus, House Specialties"
+  },
+  {
+    id: "fast-food",
+    name: "Fast Food",
+    region: "Dining Styles & Cafes",
+    flag: "🍔",
+    icon: "🍟",
+    description: "Quick-service bites, classic burgers, crispy fries, sandwiches, and on-the-go comfort food.",
+    mustTry: "Burgers, Loaded Fries, Crispy Chicken Tenders, Milkshakes"
+  },
+  {
+    id: "cafe",
+    name: "Cafe",
+    region: "Dining Styles & Cafes",
+    flag: "☕",
+    icon: "🥐",
+    description: "Espresso bars, specialty coffee, artisanal teas, breakfast pastries, and light cafe fare.",
+    mustTry: "Cappuccino, Iced Matcha Latte, Fresh Croissants, Avocado Toast"
   }
 ];
 
 export const REGIONS = [
   "All Cuisines",
+  "Dining Styles & Cafes",
   "East Asian",
   "Southeast Asian",
   "South Asian",

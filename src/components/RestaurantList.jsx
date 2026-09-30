@@ -221,7 +221,7 @@ export default function RestaurantList({
                 : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400'
             }`}
           >
-            <option value="">All Ethnic Cuisines</option>
+            <option value="">All Cuisines &amp; Categories</option>
             {CUISINES_LIST.map(c => (
               <option key={c.id} value={c.id}>{c.flag} {c.name}</option>
             ))}

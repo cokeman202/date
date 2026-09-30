@@ -37,6 +37,8 @@ const COMMON_TAGS = [
 function guessCuisineFromName(name) {
   if (!name) return null;
   const lower = name.toLowerCase();
+  if (lower.includes('cafe') || lower.includes('café') || lower.includes('coffee') || lower.includes('bakery') || lower.includes('espresso') || lower.includes('roasters') || lower.includes('tea room')) return 'cafe';
+  if (lower.includes('mcdonald') || lower.includes('burger king') || lower.includes('wendy') || lower.includes('kfc') || lower.includes('subway') || lower.includes('popeyes') || lower.includes('taco bell') || lower.includes('fast food') || lower.includes('five guys') || lower.includes('a&w') || lower.includes('harvey') || lower.includes('drive thru')) return 'fast-food';
   if (lower.includes('mandarin') || lower.includes('dim sum') || lower.includes('dumpling') || lower.includes('wok') || lower.includes('sichuan') || lower.includes('cantonese')) return 'chinese';
   if (lower.includes('sushi') || lower.includes('ramen') || lower.includes('izakaya') || lower.includes('udon') || lower.includes('yakitori') || lower.includes('omakase')) return 'japanese';
   if (lower.includes('pizza') || lower.includes('pasta') || lower.includes('trattoria') || lower.includes('osteria') || lower.includes('cacio') || lower.includes('ristorante')) return 'italian';
@@ -51,6 +53,7 @@ function guessCuisineFromName(name) {
   if (lower.includes('shawarma') || lower.includes('falafel') || lower.includes('hummus') || lower.includes('kebab') || lower.includes('lebanese')) return 'lebanese';
   if (lower.includes('injera') || lower.includes('ethiopian') || lower.includes('wat') || lower.includes('tibs')) return 'ethiopian';
   if (lower.includes('ceviche') || lower.includes('peruvian') || lower.includes('lomo saltado')) return 'peruvian';
+  if (lower.includes('steakhouse') || lower.includes('diner') || lower.includes('tavern') || lower.includes('inn & grill') || lower.includes('sit down')) return 'sit-down-restaurant';
   return null;
 }
 
@@ -478,7 +481,7 @@ export default function RestaurantModal({
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 mb-1.5">
-                Ethnic Cuisine / Tradition *
+                Cuisine &amp; Dining Option *
               </label>
               <div className="relative">
                 <select
