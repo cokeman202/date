@@ -6,6 +6,7 @@ import EthnicCuisineExplorer from './components/EthnicCuisineExplorer';
 import DateNightRoulette from './components/DateNightRoulette';
 import WishlistView from './components/WishlistView';
 import RestaurantModal from './components/RestaurantModal';
+import CloudSyncModal from './components/CloudSyncModal';
 
 import { 
   getRestaurants, 
@@ -27,6 +28,7 @@ export default function App() {
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCloudSyncModalOpen, setIsCloudSyncModalOpen] = useState(false);
   const [restaurantToEdit, setRestaurantToEdit] = useState(null);
 
   // Active Cross-Tab Filters (Initial: nothing selected)
@@ -205,6 +207,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenAddModal={() => { setRestaurantToEdit(null); setIsAddModalOpen(true); }}
+        onOpenCloudSync={() => setIsCloudSyncModalOpen(true)}
         onExport={handleExport}
         totalRestaurants={restaurants.length}
         totalCities={totalCities}
@@ -277,6 +280,18 @@ export default function App() {
         onSave={handleSaveRestaurant}
         restaurantToEdit={restaurantToEdit}
         existingCities={existingCities}
+      />
+
+      {/* Cloud Sync & Real-Time Updates Modal */}
+      <CloudSyncModal
+        isOpen={isCloudSyncModalOpen}
+        onClose={() => setIsCloudSyncModalOpen(false)}
+        restaurants={restaurants}
+        wishlist={wishlist}
+        onDataSynced={({ restaurants: newRests, wishlist: newWish }) => {
+          if (newRests) setRestaurants(newRests);
+          if (newWish) setWishlist(newWish);
+        }}
       />
 
       {/* Footer */}

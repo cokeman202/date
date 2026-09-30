@@ -1,6 +1,11 @@
 import { DEFAULT_RESTAURANTS, DEFAULT_WISHLIST } from '../data/defaultData';
 import { CITY_COORDINATES } from '../../server/geocode';
 
+export const DEFAULT_CLOUD_URL = 'https://gist.githubusercontent.com/cokeman202/0103ec70fc7c6a8826ae5519fbe78fe6/raw/journal.json';
+export const DEFAULT_GIST_WEB_URL = 'https://gist.github.com/cokeman202/0103ec70fc7c6a8826ae5519fbe78fe6';
+const STORAGE_KEY_CLOUD_URL = 'palate_cloud_url';
+const STORAGE_KEY_GITHUB_TOKEN = 'palate_github_token';
+
 const STORAGE_KEY_REST = 'couple_passport_restaurants';
 const STORAGE_KEY_WISH = 'couple_passport_wishlist';
 const STORAGE_KEY_BOUNDARIES = 'couple_passport_boundaries';
@@ -16,7 +21,7 @@ async function checkApi(path, options = {}) {
 }
 
 // LocalStorage helpers
-function getLocalRestaurants() {
+export function getLocalRestaurants() {
   const data = localStorage.getItem(STORAGE_KEY_REST);
   if (!data) return DEFAULT_RESTAURANTS;
   try {
@@ -26,11 +31,11 @@ function getLocalRestaurants() {
   }
 }
 
-function setLocalRestaurants(items) {
+export function setLocalRestaurants(items) {
   localStorage.setItem(STORAGE_KEY_REST, JSON.stringify(items));
 }
 
-function getLocalWishlist() {
+export function getLocalWishlist() {
   const data = localStorage.getItem(STORAGE_KEY_WISH);
   if (!data) return DEFAULT_WISHLIST;
   try {
@@ -40,18 +45,136 @@ function getLocalWishlist() {
   }
 }
 
-function setLocalWishlist(list) {
+export function setLocalWishlist(list) {
   localStorage.setItem(STORAGE_KEY_WISH, JSON.stringify(list));
 }
 
+export function getCloudSyncUrl() {
+  return localStorage.getItem(STORAGE_KEY_CLOUD_URL) || DEFAULT_CLOUD_URL;
+}
+
+export function setCloudSyncUrl(url) {
+  if (!url || !url.trim()) {
+    localStorage.removeItem(STORAGE_KEY_CLOUD_URL);
+  } else {
+    localStorage.setItem(STORAGE_KEY_CLOUD_URL, url.trim());
+  }
+}
+
+export function getGitHubToken() {
+  return localStorage.getItem(STORAGE_KEY_GITHUB_TOKEN) || '';
+}
+
+export function setGitHubToken(token) {
+  if (!token || !token.trim()) {
+    localStorage.removeItem(STORAGE_KEY_GITHUB_TOKEN);
+  } else {
+    localStorage.setItem(STORAGE_KEY_GITHUB_TOKEN, token.trim());
+  }
+}
+
+// Fetch latest data from configured Cloud URL (GitHub Gist, Pastebin, etc.)
+export async function fetchFromCloud(customUrl = null) {
+  const targetUrl = (customUrl || getCloudSyncUrl()).trim();
+  if (!targetUrl) throw new Error('No Cloud Sync URL provided');
+
+  // Add cache buster query parameter so browsers never use stale cache
+  const hasQuery = targetUrl.includes('?');
+  const fetchUrl = `${targetUrl}${hasQuery ? '&' : '?'}t=${Date.now()}`;
+
+  const res = await fetch(fetchUrl, {
+    headers: { 'Accept': 'application/json' }
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch from cloud: HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  if (!data || !Array.isArray(data.restaurants)) {
+    throw new Error('Invalid JSON format: expected object with "restaurants" array');
+  }
+
+  // Update localStorage with fresh cloud data
+  setLocalRestaurants(data.restaurants);
+  if (Array.isArray(data.wishlist)) {
+    setLocalWishlist(data.wishlist);
+  }
+
+  return {
+    restaurants: data.restaurants,
+    wishlist: data.wishlist || []
+  };
+}
+
+// Push to GitHub Gist using personal access token
+export async function pushToGitHubGist(restaurants, wishlist) {
+  const token = getGitHubToken();
+  if (!token) throw new Error('No GitHub token configured. Please enter a token with "gist" scope.');
+
+  const cloudUrl = getCloudSyncUrl();
+  const match = cloudUrl.match(/gist\.github(?:usercontent)?\.com\/[^/]+\/([a-f0-9]+)/i);
+  if (!match) throw new Error('Cloud URL must be a GitHub Gist URL to use 1-click auto push');
+
+  const gistId = match[1];
+  const payload = {
+    restaurants: restaurants || getLocalRestaurants(),
+    wishlist: wishlist || getLocalWishlist(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
+    },
+    body: JSON.stringify({
+      files: {
+        'journal.json': {
+          content: JSON.stringify(payload, null, 2)
+        }
+      }
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `GitHub API error HTTP ${res.status}`);
+  }
+
+  // Save to local storage as well
+  setLocalRestaurants(payload.restaurants);
+  setLocalWishlist(payload.wishlist);
+
+  return await res.json();
+}
+
 export async function getRestaurants() {
+  // 1. Try local Express server if running (dev / local desktop mode)
   try {
     const data = await checkApi('/api/restaurants');
-    setLocalRestaurants(data);
-    return data;
+    if (Array.isArray(data) && data.length > 0) {
+      setLocalRestaurants(data);
+      return data;
+    }
   } catch {
-    return getLocalRestaurants();
+    // backend not running or on static GitHub Pages
   }
+
+  // 2. Try fetching real-time data from configured Cloud Gist / Pastebin
+  try {
+    const cloud = await fetchFromCloud();
+    if (cloud && Array.isArray(cloud.restaurants)) {
+      return cloud.restaurants;
+    }
+  } catch {
+    // offline or network error, fallback to local storage
+  }
+
+  // 3. Fallback to localStorage / defaults
+  return getLocalRestaurants();
 }
 
 export async function addRestaurant(entry) {

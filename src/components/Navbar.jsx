@@ -10,7 +10,8 @@ import {
   Moon, 
   Sun,
   UtensilsCrossed,
-  Download
+  Download,
+  Cloud
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -18,6 +19,7 @@ export default function Navbar({
   setActiveTab, 
   onOpenAddModal, 
   onExport,
+  onOpenCloudSync,
   totalRestaurants,
   totalCities,
   totalCuisines
@@ -96,6 +98,16 @@ export default function Navbar({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenCloudSync}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-xs font-semibold border border-stone-200/80 dark:border-stone-700/80"
+              title="Cloud Sync / Real-Time Live Website Updates"
+            >
+              <Cloud className="w-4 h-4 text-rose-500" />
+              <span className="hidden sm:inline">Live Sync</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            </button>
+
             <button
               onClick={onExport}
               className="p-2.5 rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
