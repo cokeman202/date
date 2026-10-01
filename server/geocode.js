@@ -20,6 +20,8 @@ export const CITY_COORDINATES = {
   "honolulu": { lat: 21.3069, lng: -157.8583, country: "United States", countryCode: "US" },
   "toronto": { lat: 43.6532, lng: -79.3832, country: "Canada", countryCode: "CA" },
   "hamilton": { lat: 43.2557, lng: -79.8711, country: "Canada", countryCode: "CA" },
+  "mississauga": { lat: 43.5890, lng: -79.6441, country: "Canada", countryCode: "CA" },
+  "paris, ontario": { lat: 43.1944, lng: -80.3845, country: "Canada", countryCode: "CA" },
   "montreal": { lat: 45.5017, lng: -73.5673, country: "Canada", countryCode: "CA" },
   "vancouver": { lat: 49.2827, lng: -123.1207, country: "Canada", countryCode: "CA" },
   "mexico city": { lat: 19.4326, lng: -99.1332, country: "Mexico", countryCode: "MX" },
